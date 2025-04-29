@@ -1,0 +1,206 @@
+
+<script>
+let moneyR = 0, moneyZ = 0;
+let winR = 0, winZ = 0;
+let totalR = 0, totalZ = 0;
+let allWinR = 0, allWinZ = 0;
+let allTotal = 0;
+let history = [];
+let gameCount = 0;
+
+function saveData() {
+  const data = {
+    moneyR, moneyZ,
+    winR, winZ,
+    totalR, totalZ,
+    allWinR, allWinZ,
+    allTotal,
+    history,
+    gameCount
+  };
+  localStorage.setItem("totoData", JSON.stringify(data));
+}
+
+function loadData() {
+  const saved = JSON.parse(localStorage.getItem("totoData"));
+  if (saved) {
+    moneyR = saved.moneyR || 0;
+    moneyZ = saved.moneyZ || 0;
+    winR = saved.winR || 0;
+    winZ = saved.winZ || 0;
+    totalR = saved.totalR || 0;
+    totalZ = saved.totalZ || 0;
+    allWinR = saved.allWinR || 0;
+    allWinZ = saved.allWinZ || 0;
+    allTotal = saved.allTotal || 0;
+    history = saved.history || [];
+    gameCount = saved.gameCount || history.length;
+    document.getElementById("gameSection").style.display = "block";
+    updateUI();
+    updateRecords();
+  }
+}
+
+window.onload = () => {
+  loadData();
+  setInterval(saveData, 2000);
+};
+
+function showMessage(text) {
+  const msg = document.getElementById('message');
+  msg.innerText = text;
+  msg.style.display = "block";
+  setTimeout(() => msg.style.display = "none", 2500);
+}
+
+function startGame() {
+  moneyR = parseInt(document.getElementById("startR").value) || 100000;
+  moneyZ = parseInt(document.getElementById("startZ").value) || 100000;
+  winR = 0; winZ = 0; totalR = 0; totalZ = 0;
+  document.getElementById("gameSection").style.display = "block";
+  updateUI();
+  showMessage("게임을 시작했어요!");
+  saveData();
+}
+
+function checkResult() {
+  const gameName = document.getElementById("gameName").value || "이름없는 경기";
+  const pr = document.getElementById("predictR").value || "무승부";
+  const rr = parseFloat(document.getElementById("rateR").value);
+  const br = parseInt(document.getElementById("betR").value);
+  const pz = document.getElementById("predictZ").value || "무승부";
+  const rz = parseFloat(document.getElementById("rateZ").value);
+  const bz = parseInt(document.getElementById("betZ").value);
+  const result = document.getElementById("actualResult").value;
+
+  const beforeR = moneyR;
+  const beforeZ = moneyZ;
+
+  let winner = "없음";
+  let correct = [];
+
+  if (pr === result) {
+    moneyR += br * rr;
+    winR++; allWinR++;
+    correct.push("룽지");
+    winner = result;
+  } else {
+    moneyR -= br * rr;
+  }
+
+  if (pz === result) {
+    moneyZ += bz * rz;
+    winZ++; allWinZ++;
+    correct.push("잔비");
+    winner = result;
+  } else {
+    moneyZ -= bz * rz;
+  }
+
+  totalR++; totalZ++; allTotal++;
+  gameCount++;
+
+  const newRecord = {
+    id: gameCount,
+    name: gameName,
+    winner: result,
+    correct: correct.length ? correct.join(", ") : "없음",
+    rinfo: `배팅: ${br.toLocaleString()} / 배율: ${rr} / 잔고: ${beforeR.toLocaleString()}`,
+    zinfo: `배팅: ${bz.toLocaleString()} / 배율: ${rz} / 잔고: ${beforeZ.toLocaleString()}`
+  };
+
+  history.push(newRecord);
+  updateUI();
+  updateRecords();
+  showMessage("결과 저장 완료!");
+  saveData();
+}
+
+function updateRecords() {
+  const list = document.getElementById("gameRecords");
+  list.innerHTML = `
+    <table border="1" cellspacing="0" cellpadding="6" style="width:100%; text-align:center; font-family:'Gowun Dodum'; background:#fff;">
+      <thead>
+        <tr style="background:#e0f7fa;">
+          <th>게임 번호</th>
+          <th>게임 이름</th>
+          <th>승리 팀</th>
+          <th>적중자</th>
+          <th>룽지 정보</th>
+          <th>잔비 정보</th>
+          <th>삭제</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${history.map((g, i) => `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${g.name}</td>
+            <td>${g.winner}</td>
+            <td>${g.correct}</td>
+            <td>${g.rinfo}</td>
+            <td>${g.zinfo}</td>
+            <td><button class="delete-btn" onclick="deleteRecord(${i})">삭제</button></td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+function deleteRecord(index) {
+  history.splice(index, 1);
+  gameCount = history.length;
+  updateRecords();
+  updateUI();
+  showMessage("기록이 삭제되고 번호가 재정렬되었어요!");
+  saveData();
+}
+
+let chart;
+function updateChart(rWin, zWin) {
+  const rAll = allTotal > 0 ? (allWinR / allTotal * 100).toFixed(1) : 0;
+  const zAll = allTotal > 0 ? (allWinZ / allTotal * 100).toFixed(1) : 0;
+  const ctx = document.getElementById("chart").getContext("2d");
+  if (chart) chart.destroy();
+  chart = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: ["룽지", "잔비"],
+      datasets: [
+        {
+          label: "현재 승률 (%)",
+          data: [rWin, zWin],
+          backgroundColor: ["#4fc3f7", "#aed581"],
+          yAxisID: "y"
+        },
+        {
+          label: "누적 승률 (%)",
+          data: [rAll, zAll],
+          type: "line",
+          borderColor: "#0288d1",
+          backgroundColor: "#0288d1",
+          pointStyle: "circle",
+          pointRadius: 5,
+          fill: false,
+          yAxisID: "y"
+        }
+      ]
+    },
+    options: {
+      responsive: false,
+      interaction: { mode: "index", intersect: false },
+      stacked: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 100,
+          ticks: { callback: val => val + "%" }
+        }
+      }
+    }
+  });
+}
+</script>
+</body>
+</html>
