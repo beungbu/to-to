@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>친구끼리 토토 - 풀버전</title>
+  <style>
+    body { font-family: Arial; }
+    .record { margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>친구끼리 토토</h1>
+
+  <div>
+    <label>경기 결과 (승리팀 이름): </label>
+    <input type="text" id="resultTeam">
+  </div>
+
+  <div>
+    <h3>내 배팅</h3>
+    <label>내가 건 팀: </label>
+    <input type="text" id="myTeam"><br>
+    <label>건 금액: </label>
+    <input type="number" id="myBet" value="0"><br>
+    <label>배당률: </label>
+    <input type="number" id="myOdds" value="2">
+  </div>
+
+  <div>
+    <h3>친구 배팅</h3>
+    <label>친구가 건 팀: </label>
+    <input type="text" id="friendTeam"><br>
+    <label>건 금액: </label>
+    <input type="number" id="friendBet" value="0"><br>
+    <label>배당률: </label>
+    <input type="number" id="friendOdds" value="2">
+  </div>
+
+  <button onclick="checkResult()">결과 확인</button>
+
+  <h2 id="myResult"></h2>
+  <h2 id="friendResult"></h2>
+
+  <h3>현재 소지금</h3>
+  <p>나: <span id="myMoney">100000</span>원</p>
+  <p>친구: <span id="friendMoney">100000</span>원</p>
+
+  <h3>현재 왕</h3>
+  <p><span id="currentKing">없음</span></p>
+
+  <h3>승률</h3>
+  <p>너 승률: <span id="myWinRate">0%</span></p>
+  <p>친구 승률: <span id="friendWinRate">0%</span></p>
+
+  <hr>
+
+  <h3>추가 기능</h3>
+  <div>
+    <h4>추가 돈 발급</h4>
+    <label>너 동의함?</label>
+    <input type="checkbox" id="myAgreeAdd">
+    <label>친구 동의함?</label>
+    <input type="checkbox" id="friendAgreeAdd">
+    <button onclick="addMoney()">추가 발급</button>
+  </div>
+
+  <div>
+    <h4>게임 리셋</h4>
+    <label>너 리셋 동의?</label>
+    <input type="checkbox" id="myAgreeReset">
+    <label>친구 리셋 동의?</label>
+    <input type="checkbox" id="friendAgreeReset">
+    <button onclick="resetGame()">리셋</button>
+  </div>
+
+  <div class="record">
+    <h3>경기 기록</h3>
+    <ul id="recordList"></ul>
+  </div>
+
+  <script>
+    let myMoney = 100000;
+    let friendMoney = 100000;
+
+    let totalGames = 0;
+    let myWins = 0;
+    let friendWins = 0;
+
+    function checkResult() {
+      const resultTeam = document.getElementById('resultTeam').value.trim();
+      
+      const myTeam = document.getElementById('myTeam').value.trim();
+      const myBet = parseInt(document.getElementById('myBet').value);
+      const myOdds = parseFloat(document.getElementById('myOdds').value);
+
+      const friendTeam = document.getElementById('friendTeam').value.trim();
+      const friendBet = parseInt(document.getElementById('friendBet').value);
+      const friendOdds = parseFloat(document.getElementById('friendOdds').value);
+
+      if (myBet > myMoney || friendBet > friendMoney) {
+        alert("배팅 금액이 소지금보다 많아! 다시 입력해!");
+        return;
+      }
+
+      let myResult = "";
+      let friendResult = "";
+
+      if (resultTeam === myTeam) {
+        const gain = myBet * myOdds;
+        myMoney += gain;
+        myResult = `너가 이겼어! +${gain}원`;
+        myWins++;
+      } else {
+        myMoney -= myBet;
+        myResult = `너가 졌어... -${myBet}원`;
+      }
+
+      if (resultTeam === friendTeam) {
+        const gain = friendBet * friendOdds;
+        friendMoney += gain;
+        friendResult = `친구가 이겼어! +${gain}원`;
+        friendWins++;
+      } else {
+        friendMoney -= friendBet;
+        friendResult = `친구가 졌어... -${friendBet}원`;
+      }
+
+      totalGames++;
+
+      updateDisplay(myResult, friendResult);
+      addRecord(resultTeam, myTeam, myBet, friendTeam, friendBet);
+
+      if (myMoney <= 0) {
+        alert("너 파산했어...");
+      }
+      if (friendMoney <= 0) {
+        alert("친구 파산했어...");
+      }
+    }
+
+    function updateDisplay(myResult, friendResult) {
+      document.getElementById('myResult').innerText = myResult;
+      document.getElementById('friendResult').innerText = friendResult;
+      document.getElementById('myMoney').innerText = myMoney;
+      document.getElementById('friendMoney').innerText = friendMoney;
+
+      updateKing();
+      updateWinRate();
+    }
+
+    function addRecord(resultTeam, myTeam, myBet, friendTeam, friendBet) {
+      const recordList = document.getElementById('recordList');
+      const li = document.createElement('li');
+      li.textContent = `${totalGames}경기 - 승리팀: ${resultTeam}, 너: ${myTeam} (${myBet}원), 친구: ${friendTeam} (${friendBet}원)`;
+      recordList.appendChild(li);
+    }
+
+    function addMoney() {
+      const myAgree = document.getElementById('myAgreeAdd').checked;
+      const friendAgree = document.getElementById('friendAgreeAdd').checked;
+
+      if (myAgree && friendAgree) {
+        myMoney += 100000;
+        friendMoney += 100000;
+        alert("둘 다 동의했어! 10만원씩 추가 발급 완료!");
+        updateDisplay("", "");
+      } else {
+        alert("둘 다 동의해야 추가 발급 가능해!");
+      }
+    }
+
+    function resetGame() {
+      const myAgree = document.getElementById('myAgreeReset').checked;
+      const friendAgree = document.getElementById('friendAgreeReset').checked;
+
+      if (myAgree && friendAgree) {
+        myMoney = 100000;
+        friendMoney = 100000;
+        totalGames = 0;
+        myWins = 0;
+        friendWins = 0;
+        document.getElementById('recordList').innerHTML = "";
+        alert("둘 다 동의했어! 게임 리셋 완료!");
+        updateDisplay("", "");
+      } else {
+        alert("둘 다 동의해야 리셋 가능해!");
+      }
+    }
+
+    function updateKing() {
+      const king = (myMoney > friendMoney) ? "너!" : (friendMoney > myMoney) ? "친구!" : "비겼어!";
+      document.getElementById('currentKing').innerText = king;
+    }
+
+    function updateWinRate() {
+      const myRate = totalGames > 0 ? ((myWins / totalGames) * 100).toFixed(1) : 0;
+      const friendRate = totalGames > 0 ? ((friendWins / totalGames) * 100).toFixed(1) : 0;
+      document.getElementById('myWinRate').innerText = myRate + "%";
+      document.getElementById('friendWinRate').innerText = friendRate + "%";
+    }
+  </script>
+</body>
+</html>
