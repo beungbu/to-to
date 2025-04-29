@@ -1,0 +1,184 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>룽지와 잔비의 토토</title>
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: 'Gowun Dodum', sans-serif;
+      background-color: #f0f8ff;
+      padding: 20px;
+      color: #333;
+    }
+    h1, h3 { color: #007acc; }
+    input, label {
+      display: block;
+      margin: 5px 0;
+      font-size: 16px;
+    }
+    input[type="number"], input[type="text"] {
+      padding: 5px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #4fc3f7;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      margin: 10px 5px 20px 0;
+      font-size: 16px;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+    button:hover { background-color: #29b6f6; }
+    .delete-btn {
+      background-color: #e53935;
+      font-size: 12px;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+    #recordSection {
+      margin-top: 40px;
+      padding: 20px;
+      background: #ffffff;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>룽지와 잔비의 토토</h1>
+
+  <label>게임 이름</label>
+  <input type="text" id="gameName" placeholder="예: 챔스 결승" />
+  <label>룽지 시작 자본</label>
+  <input type="number" id="startR" value="100000" />
+  <label>잔비 시작 자본</label>
+  <input type="number" id="startZ" value="100000" />
+  <button onclick="startGame()">게임 시작</button>
+
+  <div id="gameSection" style="display:none;">
+    <h3>예측 입력</h3>
+    <label>룽지 팀</label><input type="text" id="predictR" />
+    <label>룽지 배율</label><input type="number" id="rateR" />
+    <label>룽지 금액</label><input type="number" id="betR" />
+
+    <label>잔비 팀</label><input type="text" id="predictZ" />
+    <label>잔비 배율</label><input type="number" id="rateZ" />
+    <label>잔비 금액</label><input type="number" id="betZ" />
+
+    <label>실제 결과</label><input type="text" id="actualResult" />
+    <button onclick="checkResult()">결과 확인</button>
+
+    <h3>자본금 추가</h3>
+    <input type="number" id="addR" placeholder="룽지 추가금" />
+    <input type="number" id="addZ" placeholder="잔비 추가금" />
+    <button onclick="addFunds()">추가 자본 충전</button>
+
+    <h3>현재 소지금</h3>
+    <p>룽지: <span id="moneyR">0</span> 원</p>
+    <p>잔비: <span id="moneyZ">0</span> 원</p>
+
+    <h3>승률</h3>
+    <canvas id="chart" width="400" height="200"></canvas>
+  </div>
+
+  <div id="recordSection">
+    <h3>게임 기록</h3>
+    <div id="gameRecords"></div>
+  </div>
+
+  <script>
+    let moneyR = 0, moneyZ = 0;
+    let winR = 0, winZ = 0;
+    let totalGames = 0;
+    let allWinR = 0, allWinZ = 0;
+    let history = [];
+
+    function startGame() {
+      moneyR = parseInt(document.getElementById("startR").value) || 0;
+      moneyZ = parseInt(document.getElementById("startZ").value) || 0;
+      winR = 0; winZ = 0; totalGames = 0;
+      document.getElementById("gameSection").style.display = "block";
+      updateUI();
+    }
+
+    function updateUI() {
+      document.getElementById("moneyR").innerText = moneyR.toLocaleString();
+      document.getElementById("moneyZ").innerText = moneyZ.toLocaleString();
+      updateChart();
+      updateRecords();
+    }
+
+    function checkResult() {
+      const gameName = document.getElementById("gameName").value || "이름없는 경기";
+      const rTeam = document.getElementById("predictR").value;
+      const zTeam = document.getElementById("predictZ").value;
+      const rRate = parseFloat(document.getElementById("rateR").value);
+      const zRate = parseFloat(document.getElementById("rateZ").value);
+      const rBet = parseInt(document.getElementById("betR").value);
+      const zBet = parseInt(document.getElementById("betZ").value);
+      const result = document.getElementById("actualResult").value;
+
+      const beforeR = moneyR, beforeZ = moneyZ;
+
+      if (rTeam === result) { moneyR += rBet * rRate; winR++; allWinR++; }
+      else { moneyR -= rBet * rRate; }
+
+      if (zTeam === result) { moneyZ += zBet * zRate; winZ++; allWinZ++; }
+      else { moneyZ -= zBet * zRate; }
+
+      totalGames++;
+      history.push({
+        name: gameName,
+        result: result,
+        winner: [rTeam === result ? "룽지" : "", zTeam === result ? "잔비" : ""].filter(Boolean).join(", ") || "없음",
+        rinfo: `배팅: ${rBet.toLocaleString()} / 배율: ${rRate} / 잔고: ${beforeR.toLocaleString()}`,
+        zinfo: `배팅: ${zBet.toLocaleString()} / 배율: ${zRate} / 잔고: ${beforeZ.toLocaleString()}`
+      });
+
+      updateUI();
+    }
+
+    function addFunds() {
+      moneyR += parseInt(document.getElementById("addR").value) || 0;
+      moneyZ += parseInt(document.getElementById("addZ").value) || 0;
+      updateUI();
+    }
+
+    function updateChart() {
+      const rWin = totalGames > 0 ? (winR / totalGames * 100).toFixed(1) : 0;
+      const zWin = totalGames > 0 ? (winZ / totalGames * 100).toFixed(1) : 0;
+      const rAll = (allWinR / (history.length || 1) * 100).toFixed(1);
+      const zAll = (allWinZ / (history.length || 1) * 100).toFixed(1);
+
+      const ctx = document.getElementById("chart").getContext("2d");
+      if (window.chart) window.chart.destroy();
+      window.chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['룽지', '잔비'],
+          datasets: [
+            { label: '현재 승률', data: [rWin, zWin], backgroundColor: ['#4fc3f7', '#aed581'] },
+            { label: '누적 승률', data: [rAll, zAll], type: 'line', borderColor: '#0288d1', fill: false }
+          ]
+        },
+        options: { responsive: false, scales: { y: { beginAtZero: true, max: 100 } } }
+      });
+    }
+
+    function updateRecords() {
+      const div = document.getElementById("gameRecords");
+      div.innerHTML = `
+        <table border="1" cellpadding="6" style="width:100%; text-align:center;">
+          <tr><th>이름</th><th>결과</th><th>적중자</th><th>룽지</th><th>잔비</th></tr>
+          ${history.map(h => `<tr><td>${h.name}</td><td>${h.result}</td><td>${h.winner}</td><td>${h.rinfo}</td><td>${h.zinfo}</td></tr>`).join('')}
+        </table>`;
+    }
+  </script>
+</body>
+</html>
