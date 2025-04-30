@@ -1,0 +1,137 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>룽지와 잔비의 토토</title>
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      background-color: #e0f7fa;
+      font-family: 'Gowun Dodum', sans-serif;
+      color: #01579b;
+      padding: 20px;
+    }
+    h1 {
+      font-size: 28px;
+    }
+    .section {
+      background-color: white;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 0 6px rgba(0,0,0,0.1);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      border: 1px solid #81d4fa;
+      padding: 8px;
+      text-align: center;
+    }
+    button {
+      margin-top: 10px;
+      margin-right: 10px;
+      padding: 10px 18px;
+      background-color: #4fc3f7;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>룽지와 잔비의 토토</h1>
+
+  <div class="section">
+    <h3>현재 소지금</h3>
+    <p>룽지: <span id="moneyR">0</span> 원</p>
+    <p>잔비: <span id="moneyZ">0</span> 원</p>
+    <button onclick="location.href='edit.html'">수정</button>
+    <button onclick="location.href='game.html'">게임 시작</button>
+  </div>
+
+  <div class="section">
+    <h3>승률 비교</h3>
+    <canvas id="chart" height="100"></canvas>
+  </div>
+
+  <div class="section">
+    <h3>최근 게임 기록 (최신 3개)</h3>
+    <table>
+      <thead><tr><th>번호</th><th>이름</th><th>승자</th><th>룽지 금액</th><th>잔비 금액</th></tr></thead>
+      <tbody id="recordBody"></tbody>
+    </table>
+    <button onclick="location.href='more.html'">더보기</button>
+  </div>
+
+  <script>
+    const moneyR = parseInt(localStorage.getItem("moneyR") || "100000");
+    const moneyZ = parseInt(localStorage.getItem("moneyZ") || "100000");
+    document.getElementById("moneyR").innerText = moneyR.toLocaleString();
+    document.getElementById("moneyZ").innerText = moneyZ.toLocaleString();
+
+    const games = JSON.parse(localStorage.getItem("allGames") || "[]");
+    const tbody = document.getElementById("recordBody");
+    const latest = games.slice(-3).reverse();
+
+    latest.forEach((g, i) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><a href="mini-game.html?gameId=${games.length - i}">${games.length - i}</a></td>
+        <td>${g.name}</td>
+        <td>${g.winner}</td>
+        <td>${g.moneyR.toLocaleString()}</td>
+        <td>${g.moneyZ.toLocaleString()}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    const validGames = games.filter(g => !g.reset);  // 리셋된 게임 제외
+    const winR = validGames.filter(g => g.winner === "룽지").length;
+    const winZ = validGames.filter(g => g.winner === "잔비").length;
+    const total = validGames.length;
+
+    const miniWinR = parseInt(localStorage.getItem("miniWinR") || "0");
+    const miniWinZ = parseInt(localStorage.getItem("miniWinZ") || "0");
+    const miniTotal = parseInt(localStorage.getItem("miniTotal") || "0");
+
+    new Chart(document.getElementById("chart"), {
+      type: 'bar',
+      data: {
+        labels: ['룽지', '잔비'],
+        datasets: [
+          {
+            label: '현재 게임 승률',
+            data: [
+              miniTotal ? (miniWinR / miniTotal * 100).toFixed(1) : 0,
+              miniTotal ? (miniWinZ / miniTotal * 100).toFixed(1) : 0
+            ],
+            backgroundColor: '#4fc3f7'
+          },
+          {
+            label: '누적 게임 승률',
+            data: [
+              total ? (winR / total * 100).toFixed(1) : 0,
+              total ? (winZ / total * 100).toFixed(1) : 0
+            ],
+            type: 'line',
+            borderColor: '#f06292',
+            fill: false
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        scales: { y: { beginAtZero: true, max: 100 } }
+      }
+    });
+  </script>
+</body>
+</html>
