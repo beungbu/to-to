@@ -1,0 +1,108 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>자본금 및 한계배율 수정</title>
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      background-color: #e0f7fa;
+      font-family: 'Gowun Dodum', sans-serif;
+      color: #01579b;
+      padding: 20px;
+    }
+    label, input {
+      display: block;
+      margin: 10px 0 5px;
+    }
+    input {
+      padding: 6px;
+      width: 250px;
+    }
+    button {
+      margin-top: 10px;
+      margin-right: 10px;
+      padding: 8px 16px;
+      background-color: #4fc3f7;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      cursor: pointer;
+    }
+    button.reset {
+      background-color: #ef5350;
+    }
+  </style>
+</head>
+<body>
+  <h2>자본금 및 한계배율 수정</h2>
+
+  <label>룽지 자본금 추가</label>
+  <input type="number" id="moneyR" placeholder="예: 100000" />
+
+  <label>잔비 자본금 추가</label>
+  <input type="number" id="moneyZ" placeholder="예: 100000" />
+
+  <label>룽지 한계 배율</label>
+  <input type="number" id="limitR" placeholder="기본값: 5" min="1" />
+
+  <label>잔비 한계 배율</label>
+  <input type="number" id="limitZ" placeholder="기본값: 5" min="1" />
+
+  <button onclick="save()">저장</button>
+  <button class="reset" onclick="reset()">리셋</button>
+
+  <script>
+    function save() {
+      const r = parseInt(document.getElementById("moneyR").value) || 0;
+      const z = parseInt(document.getElementById("moneyZ").value) || 0;
+      const lr = parseInt(document.getElementById("limitR").value) || 5;
+      const lz = parseInt(document.getElementById("limitZ").value) || 5;
+
+      localStorage.setItem("moneyR", r + (parseInt(localStorage.getItem("moneyR")) || 0));
+      localStorage.setItem("moneyZ", z + (parseInt(localStorage.getItem("moneyZ")) || 0));
+      localStorage.setItem("limitRateR", lr);
+      localStorage.setItem("limitRateZ", lz);
+
+      alert("저장 완료!");
+      location.href = "index.html";
+    }
+
+    function reset() {
+      const r = parseInt(document.getElementById("moneyR").value) || 0;
+      const z = parseInt(document.getElementById("moneyZ").value) || 0;
+      const lr = parseInt(document.getElementById("limitR").value) || 5;
+      const lz = parseInt(document.getElementById("limitZ").value) || 5;
+
+      const gameName = prompt("이번 게임 이름을 입력해주세요 (기록용)", "게임");
+      const currentIndex = parseInt(localStorage.getItem("currentGameIndex") || "1");
+
+      const resetRecord = {
+        name: gameName || `게임 ${currentIndex}`,
+        winner: "리셋",
+        moneyR: r,
+        moneyZ: z,
+        reset: true
+      };
+
+      const games = JSON.parse(localStorage.getItem("allGames") || "[]");
+      games.push(resetRecord);
+      localStorage.setItem("allGames", JSON.stringify(games));
+
+      localStorage.setItem("moneyR", r);
+      localStorage.setItem("moneyZ", z);
+      localStorage.setItem("limitRateR", lr);
+      localStorage.setItem("limitRateZ", lz);
+      localStorage.setItem("miniWinR", 0);
+      localStorage.setItem("miniWinZ", 0);
+      localStorage.setItem("miniTotal", 0);
+      localStorage.setItem("currentGameIndex", currentIndex + 1);
+
+      alert("리셋 완료! 게임 기록에 저장되었으며 승률에는 반영되지 않습니다.");
+      location.href = "index.html";
+    }
+  </script>
+</body>
+</html>
