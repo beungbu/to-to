@@ -1,0 +1,108 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>룽지와 잔비의 토토</title>
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #e0f7fa;
+      font-family: 'Gowun Dodum', sans-serif;
+      color: #01579b;
+      padding: 20px;
+    }
+    h2 {
+      margin-top: 30px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: white;
+      margin-top: 10px;
+    }
+    th, td {
+      border: 1px solid #81d4fa;
+      padding: 8px;
+      text-align: center;
+    }
+    .btn {
+      background-color: #4fc3f7;
+      color: white;
+      padding: 6px 12px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>룽지와 잔비의 토토</h1>
+
+  <h2>최근 게임 기록 (최대 3개)</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>고유번호</th>
+        <th>승자</th>
+        <th>룽지</th>
+        <th>잔비</th>
+        <th>삭제</th>
+      </tr>
+    </thead>
+    <tbody id="recentBody"></tbody>
+  </table>
+
+  <button class="btn" onclick="location.href='more.html'">게임기록 더보기</button>
+
+  <script>
+    const allGames = JSON.parse(localStorage.getItem("allGames") || "[]");
+    const tbody = document.getElementById("recentBody");
+
+    function render() {
+      tbody.innerHTML = "";
+      let recent = allGames.slice(-3).reverse();
+      for (let i = 0; i < 3; i++) {
+        const tr = document.createElement("tr");
+        if (recent[i]) {
+          const index = allGames.length - i;
+          tr.innerHTML = \`
+            <td><a href="mini-game.html?gameId=\${index}">\${index}</a></td>
+            <td>\${recent[i].winner}</td>
+            <td>\${recent[i].moneyR.toLocaleString()}</td>
+            <td>\${recent[i].moneyZ.toLocaleString()}</td>
+            <td><button class="btn" onclick="deleteGame(\${index - 1})">삭제</button></td>
+          \`;
+        } else {
+          tr.innerHTML = "<td colspan='5'>-</td>";
+        }
+        tbody.appendChild(tr);
+      }
+    }
+
+    function deleteGame(index) {
+      if (!confirm("정말 삭제하시겠습니까?")) return;
+      const games = JSON.parse(localStorage.getItem("allGames") || "[]");
+      games.splice(index, 1);
+      localStorage.setItem("allGames", JSON.stringify(games));
+      localStorage.setItem("currentGameIndex", games.length);
+
+      const keys = Object.keys(localStorage).filter(k => k.startsWith("miniGameRecords_"));
+      for (let key of keys) {
+        const id = parseInt(key.split("_")[1]);
+        if (id === index + 1) {
+          localStorage.removeItem(key);
+        } else if (id > index + 1) {
+          const data = localStorage.getItem(key);
+          localStorage.removeItem(key);
+          localStorage.setItem("miniGameRecords_" + (id - 1), data);
+        }
+      }
+
+      render();
+    }
+
+    render();
+  </script>
+</body>
+</html>
