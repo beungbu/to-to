@@ -1,0 +1,161 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>룽지와 잔비의 토토 - 게임</title>
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      background-color: #e0f7fa;
+      font-family: 'Gowun Dodum', sans-serif;
+      padding: 20px;
+      color: #01579b;
+    }
+    input {
+      margin: 5px 0;
+      padding: 6px;
+      width: 250px;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+    .btn-wrap {
+      margin-top: 40px;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #4fc3f7;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h2>미니게임 진행</h2>
+
+  <label>미니게임 이름:</label>
+  <input type="text" id="gameName" placeholder="예: 챔피언스리그 4강 1차전" />
+
+  <label>예측 승리팀 (입력 비워두면 무승부 처리됨):</label>
+  <input type="text" id="expected" />
+
+  <h3>룽지 배팅</h3>
+  <label>배팅팀:</label>
+  <input type="text" id="rteam" />
+  <label>배팅금액:</label>
+  <input type="number" id="rmoney" />
+  <label>배율:</label>
+  <input type="number" step="0.01" id="rmulti" />
+
+  <h3>잔비 배팅</h3>
+  <label>배팅팀:</label>
+  <input type="text" id="zteam" />
+  <label>배팅금액:</label>
+  <input type="number" id="zmoney" />
+  <label>배율:</label>
+  <input type="number" step="0.01" id="zmulti" />
+
+  <div class="btn-wrap">
+    <button onclick="run()">결과 반영</button>
+  </div>
+
+  <script>
+    function run() {
+      const name = document.getElementById("gameName").value || "이름 없는 미니게임";
+      const expect = document.getElementById("expected").value.trim();
+      const rteam = document.getElementById("rteam").value;
+      const rmoney = parseInt(document.getElementById("rmoney").value);
+      const rmulti = parseFloat(document.getElementById("rmulti").value);
+      const zteam = document.getElementById("zteam").value;
+      const zmoney = parseInt(document.getElementById("zmoney").value);
+      const zmulti = parseFloat(document.getElementById("zmulti").value);
+
+      let r = parseInt(localStorage.getItem("moneyR") || "0");
+      let z = parseInt(localStorage.getItem("moneyZ") || "0");
+      const limr = parseInt(localStorage.getItem("limitRateR") || "5");
+      const limz = parseInt(localStorage.getItem("limitRateZ") || "5");
+
+      if (rmoney > r) {
+        alert(`룽지가 자본금을 초과했습니다. 최대 배팅 가능 금액: ${r.toLocaleString()}원`);
+        return;
+      }
+      if (zmoney > z) {
+        alert(`잔비가 자본금을 초과했습니다. 최대 배팅 가능 금액: ${z.toLocaleString()}원`);
+        return;
+      }
+
+      const rLoss = rmoney * rmulti;
+      const zLoss = zmoney * zmulti;
+      if ((r - rLoss) < 0 && rLoss > r * limr) {
+        const maxr = ((r * limr) / rmoney).toFixed(2);
+        alert(`룽지의 배율이 한계배율을 초과했습니다. 최대 허용 배율: ${maxr}`);
+        return;
+      }
+      if ((z - zLoss) < 0 && zLoss > z * limz) {
+        const maxz = ((z * limz) / zmoney).toFixed(2);
+        alert(`잔비의 배율이 한계배율을 초과했습니다. 최대 허용 배율: ${maxz}`);
+        return;
+      }
+
+      let rwinner = false, zwinner = false;
+      if (expect && rteam === expect) {
+        rwinner = true;
+        r += rLoss;
+        localStorage.setItem("miniWinR", parseInt(localStorage.getItem("miniWinR") || "0") + 1);
+      } else {
+        r -= rLoss;
+      }
+
+      if (expect && zteam === expect) {
+        zwinner = true;
+        z += zLoss;
+        localStorage.setItem("miniWinZ", parseInt(localStorage.getItem("miniWinZ") || "0") + 1);
+      } else {
+        z -= zLoss;
+      }
+
+      localStorage.setItem("moneyR", r);
+      localStorage.setItem("moneyZ", z);
+
+      const idx = parseInt(localStorage.getItem("currentGameIndex") || "1");
+      const key = "miniGameRecords_" + idx;
+      const records = JSON.parse(localStorage.getItem(key) || "[]");
+      const round = records.length + 1;
+      records.push({
+        name: name,
+        winner: expect || "무승부",
+        rinfo: `배팅: ${rmoney.toLocaleString()} / 배율: ${rmulti} / 잔고: ${(rwinner ? r - rLoss : r + rLoss).toLocaleString()} → ${r.toLocaleString()}`,
+        zinfo: `배팅: ${zmoney.toLocaleString()} / 배율: ${zmulti} / 잔고: ${(zwinner ? z - zLoss : z + zLoss).toLocaleString()} → ${z.toLocaleString()}`
+      });
+      localStorage.setItem(key, JSON.stringify(records));
+      localStorage.setItem("miniTotal", parseInt(localStorage.getItem("miniTotal") || "0") + 1);
+
+      if (r < 0 || z < 0 || r >= 1000000 || z >= 1000000) {
+        const winner = r >= 1000000 || z < 0 ? "룽지" : "잔비";
+        alert(`${winner}가 배팅왕입니다!`);
+
+        const games = JSON.parse(localStorage.getItem("allGames") || "[]");
+        games.push({
+          winner: winner,
+          moneyR: r,
+          moneyZ: z
+        });
+        localStorage.setItem("allGames", JSON.stringify(games));
+        localStorage.setItem("moneyR", 0);
+        localStorage.setItem("moneyZ", 0);
+        localStorage.setItem("miniTotal", 0);
+        localStorage.setItem("miniWinR", 0);
+        localStorage.setItem("miniWinZ", 0);
+        localStorage.setItem("currentGameIndex", idx + 1);
+      }
+
+      alert("미니게임 결과가 저장되었습니다!");
+      window.location.href = "index.html";
+    }
+  </script>
+</body>
+</html>
