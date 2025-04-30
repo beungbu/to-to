@@ -1,0 +1,58 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>미니게임 기록</title>
+</head>
+<body>
+  <h2>미니게임 기록 보기</h2>
+  <table border="1">
+    <thead>
+      <tr>
+        <th>회차</th>
+        <th>게임 이름</th>
+        <th>승자</th>
+        <th>룽지 정보</th>
+        <th>잔비 정보</th>
+        <th>삭제</th>
+      </tr>
+    </thead>
+    <tbody id="recordBody"></tbody>
+  </table>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const gameId = params.get("gameId");
+    const key = "miniGameRecords_" + gameId;
+
+    let records = JSON.parse(localStorage.getItem(key) || "[]");
+    const tbody = document.getElementById("recordBody");
+
+    function render() {
+      tbody.innerHTML = "";
+      records.forEach((r, i) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${i + 1}</td>
+          <td>${r.name}</td>
+          <td>${r.winner}</td>
+          <td>${r.rinfo}</td>
+          <td>${r.zinfo}</td>
+          <td><button onclick="del(${i})">삭제</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function del(index) {
+      if (!confirm("정말 삭제할까요?")) return;
+      records.splice(index, 1);
+      localStorage.setItem(key, JSON.stringify(records));
+      render();
+    }
+
+    render();
+  </script>
+</body>
+</html>

@@ -1,0 +1,78 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>룽지와 잔비의 토토 - 게임</title>
+</head>
+<body>
+  <h2>미니게임 시작</h2>
+  <input id="rteam" placeholder="룽지 배팅팀" />
+  <input id="rmoney" type="number" placeholder="룽지 배팅금" />
+  <input id="rmulti" type="number" placeholder="룽지 배율" step="0.01" />
+  <input id="zteam" placeholder="잔비 배팅팀" />
+  <input id="zmoney" type="number" placeholder="잔비 배팅금" />
+  <input id="zmulti" type="number" placeholder="잔비 배율" step="0.01" />
+  <input id="expected" placeholder="예측 승리팀 (무승부는 빈칸)" />
+  <button onclick="run()">결과 반영</button>
+
+  <script>
+    function run() {
+      const r = parseInt(localStorage.getItem("moneyR") || "0");
+      const z = parseInt(localStorage.getItem("moneyZ") || "0");
+
+      const rteam = document.getElementById("rteam").value;
+      const rmoney = parseInt(document.getElementById("rmoney").value);
+      const rmulti = parseFloat(document.getElementById("rmulti").value);
+      const zteam = document.getElementById("zteam").value;
+      const zmoney = parseInt(document.getElementById("zmoney").value);
+      const zmulti = parseFloat(document.getElementById("zmulti").value);
+      const expected = document.getElementById("expected").value.trim();
+
+      if (rmoney > r) {
+        alert("룽지의 배팅금이 보유 자본금을 초과했습니다.");
+        return;
+      }
+      if (zmoney > z) {
+        alert("잔비의 배팅금이 보유 자본금을 초과했습니다.");
+        return;
+      }
+
+      let rresult = r, zresult = z;
+      let rwinner = false, zwinner = false;
+      if (expected && rteam === expected) {
+        rresult += rmoney * rmulti;
+        rwinner = true;
+      } else {
+        rresult -= rmoney * rmulti;
+      }
+
+      if (expected && zteam === expected) {
+        zresult += zmoney * zmulti;
+        zwinner = true;
+      } else {
+        zresult -= zmoney * zmulti;
+      }
+
+      localStorage.setItem("moneyR", rresult);
+      localStorage.setItem("moneyZ", zresult);
+
+      const gameId = parseInt(localStorage.getItem("currentGameIndex") || "1");
+      const key = "miniGameRecords_" + gameId;
+      const record = {
+        name: expected || "무승부",
+        winner: expected || "무승부",
+        rinfo: `배팅: ${rmoney} / 배율: ${rmulti} / 잔고: ${r} → ${rresult}`,
+        zinfo: `배팅: ${zmoney} / 배율: ${zmulti} / 잔고: ${z} → ${zresult}`
+      };
+
+      const list = JSON.parse(localStorage.getItem(key) || "[]");
+      list.push(record);
+      localStorage.setItem(key, JSON.stringify(list));
+
+      alert("결과가 반영되었고 저장되었습니다.");
+      location.href = "index.html";
+    }
+  </script>
+</body>
+</html>
