@@ -1,0 +1,102 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>룽지와 잔비의 토토 - 수정</title>
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      background-color: #e0f7fa;
+      font-family: 'Gowun Dodum', sans-serif;
+      padding: 20px;
+      color: #01579b;
+    }
+    input {
+      margin: 5px 0;
+      padding: 6px;
+      width: 250px;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+    button {
+      margin: 10px 10px 0 0;
+      padding: 10px 20px;
+      background-color: #4fc3f7;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h2>자본금 및 한계배율 수정</h2>
+
+  <h3>룽지</h3>
+  <label>자본금 추가:</label>
+  <input type="number" id="moneyR" placeholder="예: 100000" />
+  <label>한계배율 (기본 5):</label>
+  <input type="number" id="limitR" placeholder="예: 5" />
+
+  <h3>잔비</h3>
+  <label>자본금 추가:</label>
+  <input type="number" id="moneyZ" placeholder="예: 100000" />
+  <label>한계배율 (기본 5):</label>
+  <input type="number" id="limitZ" placeholder="예: 5" />
+
+  <div>
+    <button onclick="save()">저장</button>
+    <button onclick="resetGame()">리셋</button>
+  </div>
+
+  <script>
+    function save() {
+      const addR = parseInt(document.getElementById("moneyR").value) || 0;
+      const addZ = parseInt(document.getElementById("moneyZ").value) || 0;
+      const limitR = parseInt(document.getElementById("limitR").value) || 5;
+      const limitZ = parseInt(document.getElementById("limitZ").value) || 5;
+
+      const prevR = parseInt(localStorage.getItem("moneyR") || "0");
+      const prevZ = parseInt(localStorage.getItem("moneyZ") || "0");
+
+      localStorage.setItem("moneyR", prevR + addR);
+      localStorage.setItem("moneyZ", prevZ + addZ);
+      localStorage.setItem("limitRateR", limitR);
+      localStorage.setItem("limitRateZ", limitZ);
+
+      alert("저장 완료! 홈화면으로 이동합니다.");
+      location.href = "index.html";
+    }
+
+    function resetGame() {
+      const newR = parseInt(document.getElementById("moneyR").value) || 0;
+      const newZ = parseInt(document.getElementById("moneyZ").value) || 0;
+      const limitR = parseInt(document.getElementById("limitR").value) || 5;
+      const limitZ = parseInt(document.getElementById("limitZ").value) || 5;
+
+      localStorage.setItem("moneyR", newR);
+      localStorage.setItem("moneyZ", newZ);
+      localStorage.setItem("limitRateR", limitR);
+      localStorage.setItem("limitRateZ", limitZ);
+
+      const games = JSON.parse(localStorage.getItem("allGames") || "[]");
+      const idx = parseInt(localStorage.getItem("currentGameIndex") || "1");
+      games.push({
+        name: "리셋",
+        winner: "리셋",
+        moneyR: newR,
+        moneyZ: newZ,
+        reset: true
+      });
+      localStorage.setItem("allGames", JSON.stringify(games));
+      localStorage.setItem("currentGameIndex", idx + 1);
+
+      alert("게임이 리셋되었습니다. 홈화면으로 이동합니다.");
+      location.href = "index.html";
+    }
+  </script>
+</body>
+</html>
