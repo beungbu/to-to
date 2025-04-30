@@ -1,0 +1,88 @@
+
+<!-- 자본금 및 한계배율 수정 화면: edit.html -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>자본금 수정</title>
+  <style>
+    body {
+      background-color: #e0f7fa;
+      font-family: 'Gowun Dodum', sans-serif;
+      color: #01579b;
+      padding: 20px;
+    }
+    h2 {
+      font-size: 24px;
+      font-weight: bold;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-size: 16px;
+    }
+    input {
+      padding: 6px;
+      margin-top: 4px;
+      border-radius: 6px;
+      border: 1px solid #81d4fa;
+    }
+    button {
+      margin-top: 15px;
+      margin-right: 10px;
+      padding: 8px 16px;
+      font-family: 'Pretendard', sans-serif;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    #saveBtn { background-color: #4fc3f7; color: white; }
+    #resetBtn { background-color: #ef5350; color: white; }
+  </style>
+</head>
+<body>
+  <h2>자본금 수정</h2>
+  <label>룽지 추가 자본금 (원)<br><input type="number" id="addRoongziMoney" placeholder="예: 10000" /></label>
+  <label>잔비 추가 자본금 (원)<br><input type="number" id="addZanbiMoney" placeholder="예: 10000" /></label>
+  <label>룽지 한계 배율<br><input type="number" id="limitRoongziRatio" placeholder="예: 5" min="1" /></label>
+  <label>잔비 한계 배율<br><input type="number" id="limitZanbiRatio" placeholder="예: 5" min="1" /></label>
+  <br>
+  <button id="saveBtn" onclick="save()">저장</button>
+  <button id="resetBtn" onclick="reset()">리셋</button>
+
+  <script>
+    function save() {
+      const rAdd = parseInt(document.getElementById('addRoongziMoney').value) || 0;
+      const zAdd = parseInt(document.getElementById('addZanbiMoney').value) || 0;
+      const rLimit = parseInt(document.getElementById('limitRoongziRatio').value) || 5;
+      const zLimit = parseInt(document.getElementById('limitZanbiRatio').value) || 5;
+
+      const currentR = parseInt(localStorage.getItem('roongziMoney') || '0');
+      const currentZ = parseInt(localStorage.getItem('zanbiMoney') || '0');
+
+      localStorage.setItem('roongziMoney', currentR + rAdd);
+      localStorage.setItem('zanbiMoney', currentZ + zAdd);
+      localStorage.setItem('limitRoongziRatio', rLimit);
+      localStorage.setItem('limitZanbiRatio', zLimit);
+
+      alert("저장 완료! 홈으로 돌아갑니다.");
+      location.href = "index.html";
+    }
+
+    function reset() {
+      const rInit = parseInt(document.getElementById('addRoongziMoney').value) || 0;
+      const zInit = parseInt(document.getElementById('addZanbiMoney').value) || 0;
+      const rLimit = parseInt(document.getElementById('limitRoongziRatio').value) || 5;
+      const zLimit = parseInt(document.getElementById('limitZanbiRatio').value) || 5;
+
+      localStorage.setItem('roongziMoney', rInit);
+      localStorage.setItem('zanbiMoney', zInit);
+      localStorage.setItem('limitRoongziRatio', rLimit);
+      localStorage.setItem('limitZanbiRatio', zLimit);
+
+      alert("리셋 완료! 홈으로 돌아갑니다.");
+      location.href = "index.html";
+    }
+  </script>
+</body>
+</html>
