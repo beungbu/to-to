@@ -1,0 +1,50 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>토토 홈</title>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <style>
+    body {
+      font-family: 'Gowun Dodum', sans-serif;
+      background-color: #e0f7fa;
+      color: #01579b;
+      padding: 20px;
+    }
+    h2 {
+      margin-bottom: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #4fc3f7;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h2>룽지와 잔비의 토토</h2>
+
+  <div id="balance" style="margin-bottom: 20px;">
+    <h3>현재 소지금</h3>
+    <p>룽지: <span id="moneyR">0</span> 원</p>
+    <p>잔비: <span id="moneyZ">0</span> 원</p>
+  </div>
+
+  <button onclick="location.href='edit.html'">수정</button>
+  <button onclick="location.href='game.html'">게임 시작</button>
+  <button onclick="const id = localStorage.getItem('currentGameId'); location.href = id ? 'mini-game.html?gameId=' + id : alert('진행 중인 게임이 없습니다.')">진행 중인 게임 기록 보기</button>
+
+  <script>
+    const rMoney = parseInt(localStorage.getItem("moneyR")) || 0;
+    const zMoney = parseInt(localStorage.getItem("moneyZ")) || 0;
+    document.getElementById("moneyR").innerText = rMoney.toLocaleString();
+    document.getElementById("moneyZ").innerText = zMoney.toLocaleString();
+  </script>
+</body>
+</html>
